@@ -1,0 +1,59 @@
+name: wecogno-challenge
+x-airflow: &configuracao_airflow
+  build: .
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    CONEXAO_TAXI: postgresql://airflow:airflow@postgres/taxi
+    DIRETORIO_DADOS: /opt/airflow/data
+  volumes:
+    - ./dags:/opt/airflow/dags:ro
+    - ./sql:/opt/airflow/sql:ro
+    - ./plugins:/opt/airflow/plugins:ro
+    - ./nyc-tlc-data:/opt/airflow/data:ro
+    - airflow-logs:/opt/airflow/logs
+  depends_on:
+    postgres:
+      condition: service_healthy
+services:
+  postgres:
+    image: postgres:16.8
+    command: [postgres, -c, max_wal_size=4GB, -c, checkpoint_timeout=15min]
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./sql/inicializacao.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports: ['127.0.0.1:55432:5432']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U airflow -d taxi']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  airflow-init:
+    <<: *configuracao_airflow
+    command: bash -c 'airflow db migrate && airflow users create --username airflow --password airflow --firstname Local --lastname Admin --role Admin --email local@example.com'
+  adminer:
+    image: adminer@sha256:74f29c416e148b98305e84446a18db7cd2c1038264dec464359d36774ef080ce
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    ports: ['127.0.0.1:8081:8080']
+    depends_on:
+      postgres:
+        condition: service_healthy
+  scheduler:
+    <<: *configuracao_airflow
+    command: scheduler
+  webserver:
+    <<: *configuracao_airflow
+    command: webserver
+    ports: ['127.0.0.1:8080:8080']
+volumes:
+  pg-data:
+    name: datarisk-challenge_pg-data
+  airflow-logs:
+    name: datarisk-challenge_airflow-logs

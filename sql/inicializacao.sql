@@ -1,0 +1,4 @@
+CREATE DATABASE taxi;
+
+CREATE USER consulta WITH PASSWORD 'consulta';
+GRANT CONNECT ON DATABASE taxi TO consulta;

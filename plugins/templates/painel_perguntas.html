@@ -1,0 +1,313 @@
+{% extends "airflow/main.html" %}
+{% block head_css %}
+{{ super() }}
+<style>
+.painel-taxi {
+    max-width: 1220px;
+    margin: 26px auto 64px;
+    padding: 0 24px;
+    color: #172c38;
+    font-family: system-ui,-apple-system,sans-serif;
+}
+
+.painel-taxi .cabecalho {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    align-items: flex-start;
+    margin-bottom: 26px;
+}
+
+.painel-taxi .etiqueta {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #267f7e;
+}
+
+.painel-taxi h1 {
+    font-size: 34px;
+    letter-spacing: -1px;
+    margin: 8px 0 12px;
+    font-weight: 700;
+}
+
+.painel-taxi .atualizacao {
+    border: 1px solid #d4e5e4;
+    border-radius: 8px;
+    background: #f3faf8;
+    color: #317269;
+    white-space: nowrap;
+    padding: 12px 16px;
+    font-size: 12px;
+}
+
+.painel-taxi .indicadores {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 16px;
+    margin: 28px 0;
+}
+
+.painel-taxi .indicador {
+    border: 1px solid #dfe7eb;
+    background: #fff;
+    border-radius: 10px;
+    padding: 19px;
+}
+
+.painel-taxi .rotulo {
+    font-size: 12px;
+    color: #647783;
+    margin-bottom: 8px;
+}
+
+.painel-taxi .numero {
+    font-size: 27px;
+    font-weight: 700;
+    letter-spacing: -.7px;
+}
+
+.painel-taxi .cartao {
+    background: #fff;
+    border: 1px solid #dfe7eb;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 18px;
+    box-shadow: 0 3px 12px #15384306;
+}
+
+.painel-taxi .titulo-pergunta {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.painel-taxi .indice {
+    min-width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    background: #e6f3f1;
+    border-radius: 8px;
+    color: #277b71;
+    font-weight: 700;
+}
+
+.painel-taxi h2 {
+    font-size: 18px;
+    line-height: 1.5;
+    margin: 2px 0;
+    font-weight: 650;
+}
+
+.painel-taxi .resposta-principal {
+    font-size: 39px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin: 10px 0 12px;
+}
+
+.painel-taxi .unidade {
+    font-size: 14px;
+    color: #647783;
+    font-weight: 400;
+    letter-spacing: 0;
+}
+
+.painel-taxi .estatisticas {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.painel-taxi .estatistica {
+    padding: 16px;
+    border: 1px solid #e4ebee;
+    border-radius: 8px;
+    background: #fafcfd;
+}
+
+.painel-taxi .estatistica strong {
+    font-size: 22px;
+    display: block;
+    margin: 5px 0;
+    color: #254d5e;
+}
+
+.painel-taxi .estado-vazio {
+    padding: 28px;
+    background: #f5f8fa;
+    border: 1px solid #dce6eb;
+    border-radius: 10px;
+}
+
+@media(max-width:900px) {
+    .painel-taxi .indicadores,.painel-taxi .estatisticas {
+        grid-template-columns: repeat(2,1fr);
+    }
+
+    .painel-taxi .cabecalho {
+        display: block;
+    }
+
+    .painel-taxi .atualizacao {
+        display: inline-block;
+        margin-top: 10px;
+    }
+
+}
+
+@media(max-width:540px) {
+    .painel-taxi {
+        padding: 0 12px;
+    }
+
+    .painel-taxi h1 {
+        font-size: 27px;
+    }
+
+    .painel-taxi .indicadores,.painel-taxi .estatisticas {
+        grid-template-columns: 1fr;
+    }
+
+    .painel-taxi .cartao {
+        padding: 18px;
+    }
+
+    .painel-taxi .resposta-principal {
+        font-size: 31px;
+    }
+
+}
+
+.painel-taxi .tabela-viagens {
+    overflow-x: auto;
+    margin-top: 18px;
+}
+
+.painel-taxi table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.painel-taxi th, .painel-taxi td {
+    padding: 12px;
+    border-bottom: 1px solid #dfe7eb;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.painel-taxi .viagem-principal {
+    background: #e6f3f1;
+    font-weight: 600;
+}
+</style>
+{% endblock %}
+{% block content %}
+    <main class="painel-taxi">
+        <header class="cabecalho">
+            <div>
+                <div class="etiqueta">WeCogno · Táxis de Nova York · 2022</div>
+                <h1>Perguntas e respostas</h1>
+            </div>
+            {% if ultima_atualizacao %}
+                <div class="atualizacao">Atualizado em {{ ultima_atualizacao }}<br>Horário de Brasília</div>
+            {% endif %}
+
+        </header>
+
+        {% if mensagem %}
+            <div class="estado-vazio" role="status">{{ mensagem }}</div>
+        {% endif %}
+
+        {% if registros %}
+            <section class="indicadores" aria-label="Resumo da ingestão">
+                <div class="indicador">
+                    <div class="rotulo">Arquivos ingeridos</div>
+                    <div class="numero">{{ indicadores.total_arquivos|numero_brasileiro }}</div>
+                </div>
+                <div class="indicador">
+                    <div class="rotulo">Registros na prata</div>
+                    <div class="numero">{{ indicadores.registros_ingeridos|numero_brasileiro }}</div>
+                </div>
+                <div class="indicador">
+                    <div class="rotulo">Viagens válidas</div>
+                    <div class="numero">{{ indicadores.registros_validos|numero_brasileiro }}</div>
+                </div>
+                <div class="indicador">
+                    <div class="rotulo">Registros excluídos da análise</div>
+                    <div class="numero">{{ indicadores.registros_excluidos|numero_brasileiro }}</div>
+                </div>
+            </section>
+
+            {% for registro in registros %}
+                {% set resposta = registro.resposta %}
+                <article class="cartao">
+                    <div class="titulo-pergunta">
+                        <span class="indice">{{ registro.id_pergunta }}</span>
+                        <h2>{{ registro.pergunta }}</h2>
+                    </div>
+                    {% if registro.id_pergunta == 1 %}
+                        <div class="resposta-principal">{{ resposta.total_registros|numero_brasileiro }} <span class="unidade">viagens</span>
+                        </div>
+                    {% elif registro.id_pergunta == 2 %}
+                        <div class="resposta-principal">{{ resposta.total_viagens|numero_brasileiro }} <span class="unidade">viagens</span>
+                        </div>
+                    {% elif registro.id_pergunta == 3 %}
+
+                        <div class="tabela-viagens">
+                            <table aria-label="Cinco maiores viagens por distância">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Posição</th>
+                                        <th scope="col">Dia</th>
+                                        <th scope="col">Distância (Mi)</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {% for viagem in resposta.viagens %}
+                                        <tr{% if loop.first %} class="viagem-principal"{% endif %}>
+                                            <td>{{ loop.index }}</td>
+                                            <td>{{ viagem.dia_viagem|data_brasileira }}</td>
+                                            <td>{{ viagem.distancia_milhas|numero_brasileiro(2) }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                    {% elif registro.id_pergunta == 4 %}
+                        <div class="estatisticas">
+                            {% for chave, rotulo in [
+                                ('media', 'Média'),
+                                ('desvio_padrao_populacional', 'Desvio padrão populacional'),
+                                ('minimo', 'Mínimo'),
+                                ('maximo', 'Máximo'),
+                                ('primeiro_quartil', 'Primeiro quartil · 25%'),
+                                ('mediana', 'Mediana · 50%'),
+                                ('terceiro_quartil', 'Terceiro quartil · 75%'),
+                                ('desvio_padrao_amostral', 'Desvio padrão amostral')
+                                ] %}
+                                <div class="estatistica">
+                                    <div class="rotulo">{{ rotulo }}</div>
+                                    <strong>{{ resposta[chave]|numero_brasileiro(6) }}</strong>
+                                    <span class="unidade">Mi</span>
+                                </div>
+                            {% endfor %}
+
+                        </div>
+                    {% endif %}
+                </article>
+
+            {% endfor %}
+        {% endif %}
+
+    </main>
+{% endblock %}
